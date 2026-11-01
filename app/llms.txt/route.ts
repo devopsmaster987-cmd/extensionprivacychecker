@@ -13,6 +13,7 @@ export function GET() {
     "",
     `- [Home](${SITE.url}/en): Overview and embedded analyzer.`,
     `- [Analyzer](${SITE.url}/en/analyzer): Upload a package or fetch a public store URL.`,
+    `- [Compare](${SITE.url}/en/compare): Compare two extension packages to see permission, domain and finding changes.`,
     `- [Methodology](${SITE.url}/en/methodology): Archive validation, detection rules, scoring weights and limits.`,
     `- [Topics](${SITE.url}/en/topics): In-depth hubs on extension privacy.`,
     `- [Guides](${SITE.url}/en/guides): How-to guides, comparisons and reference pages.`,

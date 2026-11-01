@@ -24,9 +24,10 @@ Own the "can I trust this browser extension" decision moment with a free, privat
 ## URL architecture
 
 - Locale prefix for every page: `/en`, `/es`, `/fr`, `/de`, `/it`, `/pt`, `/nl`, `/pl`, `/tr`, `/ar`, `/ur`, `/hi`.
-- Home and analyzer are translated and self-canonical.
+- Home, analyzer and compare are translated shells; compare content is English-only and canonicalizes to `/en`.
 - Topic hubs: `/topics/[slug]` (11 hubs).
-- Keyword articles: `/learn/[slug]` (31 articles).
+- Keyword articles: `/learn/[slug]` (32 articles).
+- Version comparison: `/compare` compares two packages and links to the version-comparison guide.
 - Guides and comparisons: `/guides` lists guide, comparison and reference intents.
 - English-only content on non-English paths canonicalizes to `/en` and is `noindex`.
 - Trailing-slash variants are avoided; canonical URLs are absolute and locale-explicit.
@@ -37,7 +38,7 @@ Own the "can I trust this browser extension" decision moment with a free, privat
 2. **Permission intent** — what does `<all_urls>` mean, tabs vs activeTab, cookies permission, host permissions, optional permissions, Manifest V3 permission list.
 3. **File-format intent** — what is a CRX file, what is an XPI file, open CRX without installing, inspect ZIP extension.
 4. **Risk intent** — extension reading browsing history, extension keylogging risk, remote code in extensions, extension data collection, obfuscated extension code.
-5. **Comparison intent** — extension privacy checker vs antivirus, Chrome Web Store safety, Edge add-on review, Firefox add-on permissions.
+5. **Comparison intent** — extension privacy checker vs antivirus, Chrome Web Store safety, Edge add-on review, Firefox add-on permissions, and before/after extension version changes.
 6. **Developer intent** — Manifest V2 vs V3, content script matches, CSP in extensions, `externally_connectable`, web-accessible resources.
 
 Each cluster has one hub and supporting keyword pages. Hubs link down to cluster pages; articles link up to the hub, sideways to related pages and into the analyzer.

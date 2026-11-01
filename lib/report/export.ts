@@ -15,6 +15,75 @@ export function reportBaseName(report: AnalysisReport): string {
   return safeName(report.manifest.name || report.source.name.replace(/\.(crx|xpi|zip)$/i, ""), "extension");
 }
 
+function csvCell(value: unknown): string {
+  const text = String(value ?? "").replace(/\r?\n/g, " ").replace(/"/g, '""');
+  return `"${text}"`;
+}
+
+export function reportSummary(report: AnalysisReport): string {
+  const topFindings = report.findings
+    .filter((finding) => finding.severity === "high" || finding.severity === "critical")
+    .slice(0, 5)
+    .map((finding) => `- ${finding.rule}: ${finding.file}${finding.line ? `:${finding.line}` : ""}`);
+  const topDomains = report.domains.slice(0, 8).map((domain) => `- ${domain.domain} (${domain.category})`);
+  return [
+    `${report.manifest.name || report.source.name} ${report.manifest.version ?? ""}`.trim(),
+    `Risk score: ${report.score.score}/100 (${report.score.level}, grade ${report.score.grade})`,
+    `Permissions: ${report.permissions.length}; findings: ${report.findings.length}; domains: ${report.domains.length}`,
+    "",
+    "Priority actions:",
+    ...report.score.actions.map((action) => `- ${action.title}: ${action.detail}`),
+    "",
+    "High-severity findings:",
+    ...(topFindings.length ? topFindings : ["- None detected"]),
+    "",
+    "Referenced domains:",
+    ...(topDomains.length ? topDomains : ["- None extracted"]),
+    "",
+    "Static analysis only. A score or finding is not proof of malicious behavior.",
+  ].join("\n");
+}
+
+export function downloadCsvReport(report: AnalysisReport, locale: string): void {
+  const rows: string[][] = [["type", "name", "severity", "category", "file", "line", "detail"]];
+  for (const permission of report.permissions) {
+    rows.push([
+      "permission",
+      permission.key,
+      permission.level,
+      permission.kind,
+      "manifest.json",
+      "",
+      permission.description,
+    ]);
+  }
+  for (const finding of report.findings) {
+    rows.push([
+      "finding",
+      finding.rule,
+      finding.severity,
+      finding.category,
+      finding.file,
+      finding.line ? String(finding.line) : "",
+      finding.explanation,
+    ]);
+  }
+  for (const domain of report.domains) {
+    rows.push([
+      "domain",
+      domain.domain,
+      "",
+      domain.category,
+      domain.files.join("; "),
+      "",
+      `${domain.count} reference(s)`,
+    ]);
+  }
+  const csv = rows.map((row) => row.map(csvCell).join(",")).join("\r\n");
+  const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+  downloadBlob(blob, `${reportBaseName(report)}-privacy-report-${locale}.csv`);
+}
+
 export function downloadJsonReport(report: AnalysisReport, locale: string): void {
   const json = JSON.stringify(report, null, 2);
   const blob = new Blob([json], { type: "application/json;charset=utf-8" });

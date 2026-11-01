@@ -29,6 +29,12 @@ export type FindingRule =
   | "cookie-access"
   | "credential-access"
   | "keyboard-listeners"
+  | "secret-token"
+  | "fingerprinting"
+  | "clipboard-access"
+  | "crypto-mining"
+  | "suspicious-endpoint"
+  | "data-exfiltration"
   | "manifest-warning";
 
 export interface Finding {
@@ -132,10 +138,23 @@ export interface ScoreCategory {
   evidence: string[];
 }
 
+export type PrivacyGrade = "A" | "B" | "C" | "D" | "F";
+
+export interface RiskAction {
+  id: string;
+  severity: Severity;
+  title: string;
+  detail: string;
+  rule?: FindingRule;
+  category?: ScoreCategory["key"];
+}
+
 export interface RiskAssessment {
   score: number;
   level: "low" | "moderate" | "high" | "critical";
+  grade: PrivacyGrade;
   categories: ScoreCategory[];
+  actions: RiskAction[];
   summary: string;
 }
 

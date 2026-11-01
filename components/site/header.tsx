@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 const NAV_ITEMS: { key: MessageKey; path: string }[] = [
   { key: "nav.analyzer", path: "/analyzer" },
+  { key: "nav.compare", path: "/compare" },
   { key: "nav.topics", path: "/topics" },
   { key: "nav.learn", path: "/learn" },
   { key: "nav.guides", path: "/guides" },

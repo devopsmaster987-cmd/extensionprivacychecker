@@ -1,10 +1,14 @@
 import type {
   DomainRef,
   Finding,
+  FindingRule,
   HostAccessSummary,
   PermissionInfo,
+  PrivacyGrade,
+  RiskAction,
   RiskAssessment,
   ScoreCategory,
+  Severity,
 } from "./types";
 
 const WEIGHTS = {
@@ -50,12 +54,14 @@ function remoteCode(findings: Finding[]): { score: number; evidence: string[] } 
   const remoteScriptCount = count(["remote-script"]);
   const importCount = count(["import-scripts"]);
   const timerCount = count(["timer-string"]);
+  const miningCount = count(["crypto-mining"]);
 
   const score = clamp(
     Math.min(70, evalCount * 35) +
       Math.min(50, remoteScriptCount * 25) +
       Math.min(30, importCount * 20) +
-      Math.min(10, timerCount * 5),
+      Math.min(10, timerCount * 5) +
+      Math.min(30, miningCount * 30),
   );
 
   const evidence: string[] = [];
@@ -63,6 +69,7 @@ function remoteCode(findings: Finding[]): { score: number; evidence: string[] } 
   evidence.push(`${remoteScriptCount} remote script loading indicator(s).`);
   evidence.push(`${importCount} runtime importScripts() indicator(s).`);
   if (timerCount) evidence.push(`${timerCount} timer string evaluation indicator(s).`);
+  if (miningCount) evidence.push(`${miningCount} crypto-mining indicator(s).`);
   if (score === 0) evidence.push("No remote or dynamic code indicators were found.");
 
   return { score, evidence };
@@ -146,6 +153,108 @@ function obfuscation(findings: Finding[]): { score: number; evidence: string[] }
   return { score, evidence };
 }
 
+const SEVERITY_RANK: Record<Severity, number> = {
+  critical: 0,
+  high: 1,
+  medium: 2,
+  low: 3,
+  info: 4,
+};
+
+export function privacyGrade(score: number): PrivacyGrade {
+  if (score <= 14) return "A";
+  if (score <= 29) return "B";
+  if (score <= 49) return "C";
+  if (score <= 69) return "D";
+  return "F";
+}
+
+function buildActions(input: {
+  permissions: PermissionInfo[];
+  hostAccess: HostAccessSummary;
+  findings: Finding[];
+  domains: DomainRef[];
+}): RiskAction[] {
+  const actions = new Map<string, RiskAction>();
+  const add = (action: RiskAction) => {
+    if (!actions.has(action.id)) actions.set(action.id, action);
+  };
+
+  if (input.hostAccess.broadness === "all-sites") {
+    add({
+      id: "host:all-sites",
+      severity: "high",
+      title: "Restrict access to every website",
+      detail:
+        "The extension can read or change content on any site, including signed-in pages. Prefer a build that requests only the sites it needs, or restrict site access in the browser.",
+      category: "websiteAccess",
+    });
+  } else if (input.hostAccess.broadness === "broad") {
+    add({
+      id: "host:broad",
+      severity: "medium",
+      title: "Review broad website access",
+      detail:
+        "Several host patterns or wildcard domains give the extension a wide reach. Check that every pattern matches a documented feature.",
+      category: "websiteAccess",
+    });
+  }
+
+  for (const permission of input.permissions) {
+    if (permission.optional) continue;
+    if (permission.level !== "high" && permission.level !== "critical") continue;
+    add({
+      id: `permission:${permission.key}`,
+      severity: permission.level,
+      title: `Review the ${permission.key} permission`,
+      detail: permission.recommendation,
+    });
+  }
+
+  for (const finding of input.findings) {
+    if (finding.severity !== "high" && finding.severity !== "critical") continue;
+    add({
+      id: `finding:${finding.rule}`,
+      severity: finding.severity,
+      title: finding.explanation.split(".")[0] || finding.rule,
+      detail: finding.recommendation,
+      rule: finding.rule as FindingRule,
+    });
+  }
+
+  const trackingDomains = input.domains.filter((domain) =>
+    ["analytics", "advertising"].includes(domain.category),
+  );
+  if (trackingDomains.length > 0) {
+    add({
+      id: "domains:tracking",
+      severity: "medium",
+      title: "Check analytics and advertising endpoints",
+      detail: `${trackingDomains.length} referenced domain(s) are associated with analytics or advertising. Confirm what is sent and whether it matches the privacy policy.`,
+      category: "externalDomains",
+    });
+  }
+
+  const unknownDomains = input.domains.filter((domain) => domain.category === "unknown");
+  if (unknownDomains.length >= 5) {
+    add({
+      id: "domains:unknown",
+      severity: "low",
+      title: "Identify unclassified external hosts",
+      detail: `${unknownDomains.length} referenced domains could not be classified. Review the endpoints that handle user data first.`,
+      category: "externalDomains",
+    });
+  }
+
+  return Array.from(actions.values())
+    .sort(
+      (a, b) =>
+        SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] ||
+        a.title.localeCompare(b.title),
+    )
+    .slice(0, 6);
+}
+
 export function calculateRisk(input: {
   permissions: PermissionInfo[];
   hostAccess: HostAccessSummary;
@@ -210,7 +319,9 @@ export function calculateRisk(input: {
   return {
     score,
     level,
+    grade: privacyGrade(score),
     categories,
+    actions: buildActions(input),
     summary:
       "This score estimates privacy and security exposure from static indicators. It is not a malware verdict. A high score can come from legitimate broad functionality, and a low score does not guarantee that an extension is safe.",
   };

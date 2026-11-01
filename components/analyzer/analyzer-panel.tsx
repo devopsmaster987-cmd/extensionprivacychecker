@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import {
   AlertCircle,
   FileArchive,
@@ -15,12 +16,14 @@ import { LIMITS } from "@/lib/analyze/limits";
 import { analyzeBytes } from "@/lib/analyze/client";
 import type { AnalysisProgress, AnalysisReport } from "@/lib/analyze/types";
 import { toErrorCode, type AnalysisErrorCode } from "@/lib/errors";
+import { saveScan } from "@/lib/scan-history";
 import { getMessages, type MessageKey } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ReportDashboard } from "./report-dashboard";
+import { ScanHistory } from "./scan-history";
 
 type Status = "idle" | "working" | "done" | "error";
 
@@ -90,6 +93,7 @@ export function AnalyzerPanel({ locale }: { locale: Locale }) {
     try {
       const result = await analyzeBytes(filename, buffer, setProgress);
       setReport(result);
+      saveScan(result);
       setStatus("done");
       scrollToResult();
     } catch (caught) {
@@ -181,6 +185,13 @@ export function AnalyzerPanel({ locale }: { locale: Locale }) {
       window.clearTimeout(timeout);
       setStoreBusy(false);
     }
+  }
+
+  function restoreReport(report: AnalysisReport) {
+    setReport(report);
+    setStatus("done");
+    setError(null);
+    scrollToResult();
   }
 
   function reset() {
@@ -336,6 +347,25 @@ export function AnalyzerPanel({ locale }: { locale: Locale }) {
           </p>
         </div>
       </div>
+
+      {status === "idle" && (
+        <>
+          <ScanHistory locale={locale} onRestore={restoreReport} />
+
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">{t("analyzer.compareExtensions")}</h2>
+              <p className="mt-1 text-xs leading-5 text-slate-600">{t("analyzer.compareBody")}</p>
+            </div>
+            <Link
+              href={`/${locale}/compare`}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 hover:border-teal-500 hover:text-teal-900"
+            >
+              {t("nav.compare")}
+            </Link>
+          </div>
+        </>
+      )}
 
       {status === "working" && (
         <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5" aria-live="polite">

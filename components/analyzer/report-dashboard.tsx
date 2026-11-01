@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -9,15 +9,19 @@ import {
   CheckCircle2,
   ChevronDown,
   Code2,
+  Copy,
   Download,
   FileJson,
+  FileSpreadsheet,
   FileText,
   Globe2,
   Info,
   Loader2,
   Printer,
+  Search,
   ShieldAlert,
   ShieldCheck,
+  Wrench,
 } from "lucide-react";
 import type { AnalysisReport, Confidence, Finding, Severity } from "@/lib/analyze/types";
 import { formatDateTime, formatNumber, localizedPath, type Locale } from "@/lib/i18n/config";
@@ -25,14 +29,14 @@ import { getMessages, type MessageKey } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RiskBadge, RiskGauge, type BadgeVariant } from "./risk";
-import { downloadJsonReport, downloadPdfReport } from "@/lib/report/export";
+import { downloadCsvReport, downloadJsonReport, downloadPdfReport, reportSummary } from "@/lib/report/export";
 import {
   DOMAIN_HELP_PAGE,
   categoryHelpPage,
   findingHelpPage,
   permissionHelpPage,
 } from "@/lib/report-links";
-import { cn } from "@/lib/utils";
+import { cn, safeJsonPreview } from "@/lib/utils";
 
 const SEVERITY_ORDER: Record<Severity, number> = {
   critical: 0,
@@ -147,11 +151,13 @@ export function ReportDashboard({
   onNewScan: () => void;
 }) {
   const messages = getMessages(locale);
-  const t = (key: MessageKey) => messages[key];
+  const t = useCallback((key: MessageKey) => messages[key], [messages]);
   const reportRef = useRef<HTMLDivElement>(null);
   const [findingFilter, setFindingFilter] = useState<FindingFilter>("all");
+  const [findingSearch, setFindingSearch] = useState("");
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfError, setPdfError] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const findings = useMemo(
     () => [...report.findings].sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]),
@@ -159,11 +165,24 @@ export function ReportDashboard({
   );
 
   const filteredFindings = useMemo(() => {
-    if (findingFilter === "all") return findings;
-    if (findingFilter === "high") return findings.filter((f) => f.severity === "high" || f.severity === "critical");
-    if (findingFilter === "medium") return findings.filter((f) => f.severity === "medium");
-    return findings.filter((f) => f.severity === "low" || f.severity === "info");
-  }, [findings, findingFilter]);
+    const bySeverity =
+      findingFilter === "all"
+        ? findings
+        : findingFilter === "high"
+          ? findings.filter((f) => f.severity === "high" || f.severity === "critical")
+          : findingFilter === "medium"
+            ? findings.filter((f) => f.severity === "medium")
+            : findings.filter((f) => f.severity === "low" || f.severity === "info");
+    const query = findingSearch.trim().toLowerCase();
+    if (!query) return bySeverity;
+    return bySeverity.filter((finding) => {
+      const label = t(`finding.${finding.rule}` as MessageKey);
+      return [label, finding.rule, finding.file, finding.evidence, finding.explanation]
+        .join(" ")
+        .toLowerCase()
+        .includes(query);
+    });
+  }, [findings, findingFilter, findingSearch, t]);
 
   const domains = useMemo(
     () => [...report.domains].sort((a, b) => b.count - a.count || a.domain.localeCompare(b.domain)),
@@ -194,6 +213,16 @@ export function ReportDashboard({
       setPdfError(true);
     } finally {
       setPdfBusy(false);
+    }
+  }
+
+  async function handleCopySummary() {
+    try {
+      await navigator.clipboard.writeText(reportSummary(report));
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2200);
+    } catch {
+      setCopied(false);
     }
   }
 
@@ -252,13 +281,21 @@ export function ReportDashboard({
                   {t("report.analyzedAt")}: {formatDateTime(report.analyzedAt, locale)}
                 </span>
               </div>
-              <div className="mt-4">
+              <div className="mt-4 flex flex-wrap items-end gap-4">
                 <RiskGauge
                   score={report.score.score}
                   level={report.score.level}
                   label={t(`risk.${report.score.level}` as MessageKey)}
                   outOfLabel={t("report.scoreOutOf")}
                 />
+                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-center shadow-sm">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    {t("report.privacyGrade")}
+                  </p>
+                  <p className="mt-1 text-3xl font-extrabold leading-none text-slate-900">
+                    {report.score.grade}
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -275,6 +312,19 @@ export function ReportDashboard({
               >
                 <FileJson aria-hidden="true" className="h-4 w-4" />
                 {t("report.exportJson")}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => downloadCsvReport(report, locale)}
+              >
+                <FileSpreadsheet aria-hidden="true" className="h-4 w-4" />
+                {t("report.exportCsv")}
+              </Button>
+              <Button type="button" variant="outline" size="sm" onClick={handleCopySummary}>
+                <Copy aria-hidden="true" className="h-4 w-4" />
+                {copied ? t("report.copied") : t("report.copySummary")}
               </Button>
               <Button type="button" variant="outline" size="sm" onClick={() => window.print()}>
                 <Printer aria-hidden="true" className="h-4 w-4" />
@@ -409,11 +459,120 @@ export function ReportDashboard({
         </div>
 
         <SectionCard
+          icon={<ShieldAlert aria-hidden="true" className="h-5 w-5" />}
+          title={t("report.securityDetails")}
+          subtitle={t("report.rawManifest")}
+        >
+          <div className="grid gap-5 lg:grid-cols-2">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                {t("report.contentScripts")}
+              </h3>
+              {report.manifest.contentScripts.length === 0 ? (
+                <p className="mt-2 text-sm text-slate-500">{t("report.noneDeclared")}</p>
+              ) : (
+                <ul className="mt-2 space-y-2">
+                  {report.manifest.contentScripts.map((script, index) => (
+                    <li key={`${script.matches.join(",")}-${index}`} className="rounded-lg border border-slate-200 p-3 text-xs">
+                      <p className="font-semibold text-slate-800">
+                        {script.matches.join(", ") || t("common.none")}
+                      </p>
+                      <p className="mt-1 text-slate-500">
+                        {script.js.length ? `JS: ${script.js.join(", ")}` : "JS: —"}
+                      </p>
+                      {script.css.length > 0 && <p className="text-slate-500">CSS: {script.css.join(", ")}</p>}
+                      <p className="mt-1 text-slate-500">
+                        {script.runAt ? `${t("report.runAt")}: ${script.runAt}` : ""}
+                        {script.allFrames ? ` · ${t("report.allFrames")}` : ""}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <dl className="grid gap-2 text-sm">
+              <div className="flex justify-between gap-3 border-b border-slate-100 pb-1.5">
+                <dt className="text-slate-500">{t("report.background")}</dt>
+                <dd className="text-end font-medium text-slate-800">
+                  {report.manifest.background
+                    ? report.manifest.background.type
+                    : t("common.none")}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-3 border-b border-slate-100 pb-1.5">
+                <dt className="text-slate-500">{t("report.serviceWorker")}</dt>
+                <dd className="max-w-[14rem] break-all text-end font-medium text-slate-800">
+                  {report.manifest.background?.serviceWorker ?? t("common.none")}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-3 border-b border-slate-100 pb-1.5">
+                <dt className="text-slate-500">{t("report.action")}</dt>
+                <dd className="max-w-[14rem] break-all text-end font-medium text-slate-800">
+                  {report.manifest.actionPopup ?? t("common.none")}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-3 border-b border-slate-100 pb-1.5">
+                <dt className="text-slate-500">{t("report.optionsPage")}</dt>
+                <dd className="max-w-[14rem] break-all text-end font-medium text-slate-800">
+                  {report.manifest.optionsPage ?? t("common.none")}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-3 border-b border-slate-100 pb-1.5">
+                <dt className="text-slate-500">{t("report.updateUrl")}</dt>
+                <dd className="max-w-[14rem] break-all text-end font-medium text-slate-800">
+                  {report.manifest.updateUrl ?? t("common.none")}
+                </dd>
+              </div>
+              <div className="border-b border-slate-100 pb-1.5">
+                <dt className="text-slate-500">{t("report.csp")}</dt>
+                <dd className="mt-1 break-words font-mono text-xs text-slate-700">
+                  {report.manifest.contentSecurityPolicy ?? t("common.none")}
+                </dd>
+              </div>
+              <div className="border-b border-slate-100 pb-1.5">
+                <dt className="text-slate-500">{t("report.externalConnections")}</dt>
+                <dd className="mt-1 break-words font-mono text-xs text-slate-700">
+                  {report.manifest.externallyConnectable
+                    ? safeJsonPreview(report.manifest.externallyConnectable, 400)
+                    : t("common.none")}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-slate-500">{t("report.webAccessible")}</dt>
+                <dd className="mt-1 break-words font-mono text-xs text-slate-700">
+                  {report.manifest.webAccessibleResources
+                    ? safeJsonPreview(report.manifest.webAccessibleResources, 400)
+                    : t("common.none")}
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </SectionCard>
+
+        <SectionCard
           icon={<Code2 aria-hidden="true" className="h-5 w-5" />}
           title={t("report.findings")}
           subtitle={t("report.findingsNote")}
         >
-          <div className="no-print flex flex-wrap gap-2">
+          <div className="no-print mt-4">
+            <label htmlFor="finding-search" className="text-xs font-semibold text-slate-600">
+              {t("report.searchFindings")}
+            </label>
+            <div className="relative mt-1">
+              <Search aria-hidden="true" className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                id="finding-search"
+                type="search"
+                value={findingSearch}
+                onChange={(event) => setFindingSearch(event.target.value)}
+                placeholder={t("report.searchPlaceholder")}
+                className="w-full rounded-lg border border-slate-300 bg-white py-2 pe-3 ps-9 text-sm text-slate-900 outline-none ring-teal-600 placeholder:text-slate-400 focus:border-teal-600 focus:ring-2"
+              />
+            </div>
+          </div>
+
+          <div className="no-print mt-3 flex flex-wrap gap-2">
             {(
               [
                 ["all", counts.all],
@@ -448,7 +607,7 @@ export function ReportDashboard({
               {t("report.noFindings")}
             </p>
           ) : filteredFindings.length === 0 ? (
-            <p className="mt-4 text-sm text-slate-500">{t("common.none")}</p>
+            <p className="mt-4 text-sm text-slate-500">{t("report.noMatches")}</p>
           ) : (
             <ul className="mt-4 space-y-2">
               {filteredFindings.map((finding) => (
@@ -573,6 +732,49 @@ export function ReportDashboard({
             <p className="text-sm font-semibold text-slate-900">{t("report.cannotProve")}</p>
             <p className="mt-1 text-sm leading-6 text-slate-600" lang="en">{t("report.disclaimer")}</p>
           </div>
+        </SectionCard>
+
+        <SectionCard
+          icon={<Wrench aria-hidden="true" className="h-5 w-5" />}
+          title={t("report.priorityActions")}
+          subtitle={t("report.riskSummary")}
+        >
+          {report.score.actions.length === 0 ? (
+            <p className="text-sm text-slate-500">{t("report.noActions")}</p>
+          ) : (
+            <ol className="space-y-3">
+              {report.score.actions.map((action, index) => (
+                <li key={action.id} className="flex gap-3 rounded-xl border border-slate-200 p-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white">
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <RiskBadge level={action.severity} label={severityLabel(action.severity, t)} />
+                      <p className="text-sm font-semibold text-slate-900">{action.title}</p>
+                    </div>
+                    <p className="mt-1 text-sm leading-6 text-slate-600">{action.detail}</p>
+                    {action.rule && (
+                      <Link
+                        href={localizedPath(locale, `/learn/${findingHelpPage(action.rule)}`)}
+                        className="no-print mt-2 inline-flex text-xs font-semibold text-teal-800 hover:text-teal-950 hover:underline"
+                      >
+                        {t("common.learnMore")}
+                      </Link>
+                    )}
+                    {!action.rule && action.category && (
+                      <Link
+                        href={localizedPath(locale, `/learn/${categoryHelpPage(action.category)}`)}
+                        className="no-print mt-2 inline-flex text-xs font-semibold text-teal-800 hover:text-teal-950 hover:underline"
+                      >
+                        {t("common.learnMore")}
+                      </Link>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
         </SectionCard>
 
         <SectionCard

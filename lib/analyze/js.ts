@@ -137,6 +137,54 @@ const RULES: Record<FindingRule, RuleDefinition> = {
     recommendation:
       "Check whether keystrokes are only used locally for shortcuts.",
   },
+  "secret-token": {
+    severity: "high",
+    confidence: "medium",
+    explanation:
+      "The package contains a string that matches the format of a well-known API key or access token. A hardcoded credential can be extracted by anyone who downloads the extension.",
+    recommendation:
+      "Revoke and rotate the credential if it is real. Use a backend or the browser identity API instead of shipping secrets in extension code.",
+  },
+  fingerprinting: {
+    severity: "medium",
+    confidence: "low",
+    explanation:
+      "The code references browser fingerprinting surfaces such as canvas, WebGL, audio or device details. Fingerprinting can identify a browser without cookies.",
+    recommendation:
+      "Check whether the data is used locally for rendering or sent to a server for identification.",
+  },
+  "clipboard-access": {
+    severity: "medium",
+    confidence: "medium",
+    explanation:
+      "The code references clipboard APIs. Clipboard contents can include passwords, addresses or one-time codes.",
+    recommendation:
+      "Confirm that clipboard access is user-initiated and that copied values are not transmitted.",
+  },
+  "crypto-mining": {
+    severity: "high",
+    confidence: "low",
+    explanation:
+      "The code contains patterns associated with cryptocurrency mining scripts. A match does not prove that mining occurs.",
+    recommendation:
+      "Search for the named library or domain and review whether it is bundled for a documented purpose.",
+  },
+  "suspicious-endpoint": {
+    severity: "medium",
+    confidence: "low",
+    explanation:
+      "The package references a raw IP address or a host commonly used for temporary file sharing or webhook collection.",
+    recommendation:
+      "Identify what is sent to this endpoint and whether the destination is documented by the publisher.",
+  },
+  "data-exfiltration": {
+    severity: "high",
+    confidence: "low",
+    explanation:
+      "The extension combines network access with sensitive data access and broad site access. This pattern does not prove exfiltration, but it is worth reviewing together.",
+    recommendation:
+      "Trace each network request that carries page, cookie, credential, clipboard or history data and confirm the destination and retention policy.",
+  },
   "manifest-warning": {
     severity: "low",
     confidence: "high",
@@ -204,6 +252,20 @@ function literalString(node: any): string | null {
 const SCRIPT_REMOTE_PATTERN = /createElement\s*\(\s*['"`]script['"`]\s*\)/;
 const SCRIPT_SRC_PATTERN = /(?:<script[^>]*\bsrc\s*=|\.src\s*=\s*['"`](?:https?:)?\/\/)/i;
 const PASSWORD_PATTERN = /(?:type\s*=\s*['"`]?password|input\[type\s*=\s*['"`]?password)/i;
+const FINGERPRINT_PATTERN =
+  /(?:canvas\.(?:toDataURL|toBlob)|getImageData\s*\(|WebGLRenderingContext|AudioContext|OfflineAudioContext|navigator\.(?:plugins|hardwareConcurrency|deviceMemory)|screen\.(?:colorDepth|pixelDepth))/;
+const CLIPBOARD_PATTERN =
+  /(?:navigator\.clipboard|clipboard\.(?:read|readText)|execCommand\s*\(\s*['"`](?:paste|copy|cut)['"`])/;
+const CRYPTO_MINING_PATTERN =
+  /(?:coinhive|cryptonight|cryptoloot|webminepool|coinimp|miner\.start|WebAssembly.*(?:miner|mining))/i;
+const SECRET_PATTERNS: { label: string; pattern: RegExp }[] = [
+  { label: "Google API key", pattern: /\bAIza[0-9A-Za-z_-]{35}\b/ },
+  { label: "Stripe live secret key", pattern: /\bsk_live_[0-9A-Za-z]{20,}\b/ },
+  { label: "GitHub token", pattern: /\b(?:ghp|gho|ghu|ghs|ghr)_[0-9A-Za-z]{30,}\b/ },
+  { label: "Slack token", pattern: /\bxox[baprs]-[0-9A-Za-z-]{10,}\b/ },
+  { label: "AWS access key", pattern: /\bAKIA[0-9A-Z]{16}\b/ },
+  { label: "Private key block", pattern: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/ },
+];
 
 function detectObfuscation(code: string): { suspicious: boolean; evidence: string } {
   const hexIdentifiers = (code.match(/\b_0x[0-9a-fA-F]{2,}\b/g) ?? []).length;
@@ -248,13 +310,13 @@ export function analyzeJavaScriptFile(path: string, code: string): JsAnalysisRes
       category:
         rule === "eval" || rule === "function-constructor" || rule === "timer-string"
           ? "dynamic-code"
-          : rule === "remote-script" || rule === "import-scripts"
+          : rule === "remote-script" || rule === "import-scripts" || rule === "crypto-mining"
             ? "remote-code"
             : rule === "obfuscation"
               ? "obfuscation"
               : rule === "dom-injection" || rule === "document-write"
                 ? "dom-injection"
-                : rule === "network-request" || rule === "websocket"
+                : rule === "network-request" || rule === "websocket" || rule === "suspicious-endpoint"
                   ? "network"
                   : rule === "storage"
                     ? "storage"
@@ -426,6 +488,48 @@ export function analyzeJavaScriptFile(path: string, code: string): JsAnalysisRes
               "The file references password fields and also contains a network request API. This does not prove credential collection, but it is a pattern worth reviewing.",
           }
         : undefined,
+    );
+  }
+
+  for (const secret of SECRET_PATTERNS) {
+    const match = secret.pattern.exec(code);
+    if (!match) continue;
+    const line = code.slice(0, match.index).split("\n").length;
+    const redacted = `${match[0].slice(0, Math.min(8, match[0].length))}…`;
+    push(
+      "secret-token",
+      { loc: { start: { line, column: 0 } } },
+      `${secret.label}: ${redacted}`,
+    );
+  }
+
+  if (FINGERPRINT_PATTERN.test(code)) {
+    const index = code.search(FINGERPRINT_PATTERN);
+    const line = code.slice(0, index).split("\n").length;
+    push(
+      "fingerprinting",
+      { loc: { start: { line, column: 0 } } },
+      "canvas, WebGL, audio or device fingerprinting surface",
+    );
+  }
+
+  if (CLIPBOARD_PATTERN.test(code)) {
+    const index = code.search(CLIPBOARD_PATTERN);
+    const line = code.slice(0, index).split("\n").length;
+    push(
+      "clipboard-access",
+      { loc: { start: { line, column: 0 } } },
+      "clipboard API reference",
+    );
+  }
+
+  if (CRYPTO_MINING_PATTERN.test(code)) {
+    const index = code.search(CRYPTO_MINING_PATTERN);
+    const line = code.slice(0, index).split("\n").length;
+    push(
+      "crypto-mining",
+      { loc: { start: { line, column: 0 } } },
+      "cryptocurrency mining library or endpoint reference",
     );
   }
 

@@ -78,3 +78,18 @@ test.describe("analyzer", () => {
     await expect(page.getByRole("heading", { name: "Privacy Sample Extension", level: 2 })).toHaveCount(0);
   });
 });
+
+test.describe("version comparison", () => {
+  test("compares two packages and shows the diff", async ({ page }) => {
+    test.setTimeout(60_000);
+    await page.goto("/en/compare");
+    const inputs = page.locator('input[type="file"]');
+    await inputs.nth(0).setInputFiles("tests/fixtures/privacy-sample.zip");
+    await inputs.nth(1).setInputFiles("tests/fixtures/privacy-sample.crx");
+    await expect(page.getByText(/Ready:/)).toHaveCount(2, { timeout: 30_000 });
+    await page.getByRole("button", { name: "Compare packages" }).click();
+    await expect(page.getByRole("heading", { name: "Permissions and website access" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Domains and code findings" })).toBeVisible();
+    await expect(page.getByText("Score change:")).toBeVisible();
+  });
+});

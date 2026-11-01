@@ -48,7 +48,7 @@ describe("sitemap", () => {
   });
 
   it("contains every indexable page with absolute URLs", () => {
-    expect(urls).toHaveLength(75);
+    expect(urls).toHaveLength(77);
     for (const url of urls) expect(url.startsWith(SITE.url)).toBe(true);
 
     for (const locale of locales) {
@@ -59,6 +59,7 @@ describe("sitemap", () => {
 
     for (const path of [
       ...allContentPaths(),
+      "/compare",
       "/methodology",
       "/about",
       "/contact",

@@ -66,6 +66,85 @@ function htmlFindings(path: string, html: string): Finding[] {
   return findings;
 }
 
+const RAW_IPV4 = /^\d{1,3}(?:\.\d{1,3}){3}$/;
+const TEMPORARY_UPLOAD_HOSTS = [
+  "pastebin.com",
+  "paste.ee",
+  "transfer.sh",
+  "file.io",
+  "0x0.st",
+  "webhook.site",
+  "requestbin.net",
+  "pipedream.net",
+  "ngrok.io",
+  "ngrok-free.app",
+];
+
+function endpointFindings(domains: AnalysisReport["domains"]): Finding[] {
+  const findings: Finding[] = [];
+  for (const domain of domains) {
+    const isIp = RAW_IPV4.test(domain.domain);
+    const isTemporary = TEMPORARY_UPLOAD_HOSTS.some(
+      (host) => domain.domain === host || domain.domain.endsWith(`.${host}`),
+    );
+    if (!isIp && !isTemporary) continue;
+    findings.push({
+      id: `domain:${domain.domain}:suspicious-endpoint`,
+      rule: "suspicious-endpoint",
+      category: "network",
+      file: domain.files[0] ?? "manifest.json",
+      line: null,
+      column: null,
+      severity: isTemporary ? "high" : "medium",
+      confidence: "low",
+      evidence: domain.domain,
+      explanation: isIp
+        ? "The package references a raw IP address instead of a named host. IP endpoints are harder to attribute and can change ownership."
+        : "The package references a host commonly used for temporary file sharing, webhooks or tunnels. These services can receive data without a stable, identifiable destination.",
+      recommendation:
+        "Identify what is sent to this endpoint, who operates it and whether the destination is documented by the publisher.",
+    });
+  }
+  return findings;
+}
+
+function exfiltrationFinding(input: {
+  permissions: PermissionInfo[];
+  hostAccess: AnalysisReport["hostAccess"];
+  findings: Finding[];
+}): Finding | null {
+  const hasNetwork = input.findings.some((finding) =>
+    ["network-request", "websocket", "suspicious-endpoint"].includes(finding.rule),
+  );
+  const hasSensitiveAccess =
+    input.permissions.some((permission) =>
+      ["cookies", "history", "clipboardRead", "debugger", "webRequest"].includes(permission.key),
+    ) ||
+    input.findings.some((finding) =>
+      ["credential-access", "secret-token", "clipboard-access", "cookie-access"].includes(finding.rule),
+    );
+  const broadSiteAccess =
+    input.hostAccess.broadness === "all-sites" || input.hostAccess.broadness === "broad";
+
+  if (!hasNetwork || !hasSensitiveAccess || !broadSiteAccess) return null;
+
+  return {
+    id: "package:data-exfiltration",
+    rule: "data-exfiltration",
+    category: "sensitive-data",
+    file: input.hostAccess.patterns[0] ?? "manifest.json",
+    line: null,
+    column: null,
+    severity: "high",
+    confidence: "low",
+    evidence: "Network API + sensitive data access + broad site access",
+    explanation:
+      "The package combines a network request API, access to sensitive page or browser data, and broad website access. This combination does not prove data exfiltration, but it is the pattern reviewers should trace first.",
+    recommendation:
+      "Trace each request that carries page, cookie, credential, clipboard or history data. Confirm the destination, the encryption in transit and the retention policy.",
+  };
+}
+
 function inlineScriptFindings(file: ExtractedTextFile): Finding[] {
   if (!/\.html?$/i.test(file.path)) return [];
   const findings: Finding[] = [];
@@ -236,6 +315,9 @@ export async function analyzePackage(
     files.filter((file) => /\.(js|mjs|cjs|jsx|html?|json|txt)$/i.test(file.path)),
     manifest,
   );
+  findings.push(...endpointFindings(domains));
+  const exfiltration = exfiltrationFinding({ permissions, hostAccess, findings });
+  if (exfiltration) findings.push(exfiltration);
 
   onProgress?.({ stage: "scoring", percent: 85 });
 

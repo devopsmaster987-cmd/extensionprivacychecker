@@ -64,6 +64,12 @@ const FINDING_PAGES: Record<FindingRule, string> = {
   "cookie-access": "extension-asking-for-cookies-permission",
   "credential-access": "does-this-extension-track-me",
   "keyboard-listeners": "does-this-extension-track-me",
+  "secret-token": "browser-plugin-source-analyzer",
+  fingerprinting: "does-this-extension-track-me",
+  "clipboard-access": "browser-add-on-data-access-checker",
+  "crypto-mining": "remote-script-reference-detector",
+  "suspicious-endpoint": "check-what-domains-a-chrome-extension-connects-to",
+  "data-exfiltration": "browser-extension-tracking-analysis",
   "manifest-warning": "extension-manifest-viewer",
 };
 

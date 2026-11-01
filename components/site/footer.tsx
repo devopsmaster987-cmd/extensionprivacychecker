@@ -27,6 +27,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
 
           <FooterColumn title={messages["footer.tool"]}>
             <FooterLink href={localizedPath(locale, "/analyzer")}>{messages["nav.analyzer"]}</FooterLink>
+            <FooterLink href={localizedPath(locale, "/compare")}>{messages["nav.compare"]}</FooterLink>
             <FooterLink href={localizedPath(locale, "/methodology")}>{messages["nav.methodology"]}</FooterLink>
             {topHubs.map((hub) => (
               <FooterLink key={hub.slug} href={localizedPath(locale, contentRoutes.hub(hub.slug))}>

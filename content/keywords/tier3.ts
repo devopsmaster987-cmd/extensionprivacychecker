@@ -643,4 +643,102 @@ export const tier3: ContentPage[] = [
     lastReviewed: "2026-10-31",
     analyzerEmbed: true,
   },
+  {
+    kind: "keyword",
+    slug: "compare-chrome-extension-versions",
+    cluster: "privacy-checker",
+    hub: "browser-extension-privacy-checker",
+    primaryKeyword: "compare chrome extension versions",
+    intent: "guide",
+    title: "How to Compare Chrome Extension Versions",
+    metaTitle: "Compare Chrome Extension Versions - Permissions and Risk Diff",
+    description:
+      "Compare two Chrome extension versions to see permission, host pattern, domain and code finding changes. Learn which update changes deserve a closer review.",
+    h1: "How to compare Chrome extension versions",
+    answer:
+      "To compare Chrome extension versions, download both packages, inspect each manifest and code, then diff permissions, host patterns, content-script matches, external domains and code findings. Focus on capabilities that grew between versions, such as new cookies access or broad host patterns, and check whether the release notes explain them. A static diff shows change, not intent.",
+    sections: [
+      {
+        heading: "Collect both packages",
+        body: [
+          "Keep the version you already reviewed and obtain the update. If the extension is installed, use the browser's extension page to find the version number, then download the matching CRX or unpacked package. For Firefox, download the XPI. Store both files together so the comparison is reproducible.",
+          "A version diff is only meaningful when the two packages are the actual builds you are comparing. Mixing a store build with a developer ZIP can create false differences in minification, build flags or bundled dependencies.",
+        ],
+        list: [
+          "Record the version number and release date for both packages",
+          "Prefer the same distribution channel for both builds",
+          "Keep the original files until the review is complete",
+        ],
+        links: [
+          { label: "unpack a CRX without installing", slug: "unpack-crx-file-without-installing" },
+          { label: "Firefox XPI analyzer", slug: "firefox-xpi-file-analyzer" },
+        ],
+      },
+      {
+        heading: "Diff the manifest first",
+        body: [
+          "The manifest is the fastest place to spot a capability change. Compare permissions, optional_permissions, host_permissions and content_scripts.matches. A new all_urls pattern or a new cookies permission is more consequential than a renamed action popup.",
+          "Also check externally_connectable, web_accessible_resources and the content security policy. These fields control who can talk to the extension and what resources pages can reach.",
+        ],
+        table: {
+          caption: "Manifest fields to compare",
+          headers: ["Field", "What a change can mean"],
+          rows: [
+            ["permissions", "New browser API access"],
+            ["host_permissions", "Broader website access"],
+            ["content_scripts.matches", "Code injected into more pages"],
+            ["externally_connectable", "New web page communication"],
+            ["web_accessible_resources", "More resources exposed to pages"],
+          ],
+        },
+        links: [
+          { label: "what does all_urls mean", slug: "what-does-all-urls-permission-mean" },
+          { label: "content script matches", slug: "content-script-matches-patterns-explained" },
+        ],
+      },
+      {
+        heading: "Review code and domain changes",
+        body: [
+          "After the manifest, compare code findings and external domains. New remote script references, credential access, clipboard reads or raw IP endpoints deserve a closer look. A new analytics domain may be expected; an unexplained endpoint on a login page is harder to justify.",
+          "Static analysis can flag bundled library code that the publisher did not write. Read the surrounding file and line before treating a finding as evidence of intent.",
+        ],
+        callout:
+          "Treat a version diff as a focused review list. It narrows where to look; it does not replace reading the changed code.",
+        links: [
+          { label: "how to audit an extension", slug: "how-to-audit-an-extension-before-install" },
+          { label: "check extension domains", slug: "check-what-domains-a-chrome-extension-connects-to" },
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Can I compare Chrome extension versions without installing them?",
+        answer:
+          "Yes. Download both packages and inspect them statically. You can compare manifests, code findings and domains without loading either version in a browser profile.",
+      },
+      {
+        question: "What is the most important change in an extension update?",
+        answer:
+          "A new broad host permission or a new sensitive API permission is usually more important than a version bump. Check whether the release notes explain the feature that needs it.",
+      },
+      {
+        question: "Does a new domain in an update mean the extension is unsafe?",
+        answer:
+          "Not by itself. A new domain may support a new feature or a changed backend. Review the code context and the publisher's privacy policy before deciding.",
+      },
+      {
+        question: "Can a version diff detect a compromised update?",
+        answer:
+          "It can surface suspicious changes, but it cannot prove compromise. A compromised build may reuse existing permissions and domains, so runtime behavior and publisher communication still matter.",
+      },
+    ],
+    related: [
+      "browser-extension-privacy-checker",
+      "how-to-audit-an-extension-before-install",
+      "is-this-chrome-extension-safe-to-install",
+      "chrome-extension-host-permissions-checker",
+    ],
+    lastReviewed: "2026-11-01",
+    analyzerEmbed: true,
+  },
 ];

@@ -1,6 +1,6 @@
 # Extension Privacy Checker
 
-Free, multilingual static analysis for browser extensions. Upload a CRX, XPI, ZIP or `manifest.json` file and get a plain-language report on permissions, website access, external domains, code indicators and a transparent 0-100 risk score. Extension code is never executed, and uploaded files are processed in the browser.
+Free, multilingual static analysis for browser extensions. Upload a CRX, XPI, ZIP or `manifest.json` file and get a plain-language report on permissions, website access, external domains, code indicators, a transparent 0-100 risk score, a privacy grade and prioritized actions. Compare two package versions to see what changed. Extension code is never executed, and uploaded files are processed in the browser.
 
 ## Stack
 
@@ -37,7 +37,7 @@ npm run start
 | `npm run start` | Serve the production build |
 | `npm run lint` | ESLint with Next.js core-web-vitals rules |
 | `npm run typecheck` | TypeScript without emitting |
-| `npm test` | Vitest unit tests (13 files, 83 tests) |
+| `npm test` | Vitest unit tests (15 files, 91 tests) |
 | `npm run test:e2e` | Playwright tests in Chromium and mobile Chrome |
 | `npm run fixtures` | Regenerate CRX/XPI/ZIP/manifest fixtures used by e2e tests |
 
@@ -57,15 +57,16 @@ Set `NEXT_PUBLIC_SITE_URL` to the real deployment origin before publishing; it i
 
 - `/[locale]` — home page with the embedded analyzer
 - `/[locale]/analyzer` — full analyzer page
+- `/[locale]/compare` — side-by-side version comparison for two packages
 - `/[locale]/topics` and `/[locale]/topics/[slug]` — 11 topic hubs
-- `/[locale]/learn` and `/[locale]/learn/[slug]` — 31 keyword articles
+- `/[locale]/learn` and `/[locale]/learn/[slug]` — 32 keyword articles
 - `/[locale]/guides` — guides, comparisons and reference pages
 - `/[locale]/{methodology,about,contact,privacy,terms,disclaimer}` — legal and trust pages
 - `/api/store` — server-side retrieval of public packages from official store endpoints
 - `/og` — generated Open Graph/Twitter image
 - `/sitemap.xml`, `/robots.txt`, `/llms.txt` — crawl and AEO assets
 
-Content routes are generated for all 12 locales (643 static pages). English-only articles on non-English paths render with an English fallback notice, canonicalize to `/en`, and are `noindex`.
+Content routes are generated for all 12 locales (667 static pages). English-only articles on non-English paths render with an English fallback notice, canonicalize to `/en`, and are `noindex`.
 
 ## Project structure
 
@@ -91,7 +92,8 @@ proxy.ts             Locale redirect (Next 16 replacement for middleware)
 3. `manifest.json` is located and parsed against a strict shape; permissions, host patterns, content scripts, CSP, `externally_connectable`, web-accessible resources and update URLs are collected.
 4. JavaScript and HTML text files are parsed statically with acorn and pattern rules. Code is never passed to `eval`, imported, installed or executed.
 5. Referenced domains are extracted and classified. Findings include file, line, evidence, confidence and a recommendation.
-6. Six weighted categories produce the 0-100 score:
+6. Findings, permissions and domains produce a privacy grade and a short prioritized action list in addition to the score.
+7. Six weighted categories produce the 0-100 score:
    - permission exposure 25%
    - website access 20%
    - data-collection indicators 15%
@@ -99,7 +101,7 @@ proxy.ts             Locale redirect (Next 16 replacement for middleware)
    - external-domain exposure 10%
    - source obfuscation 10%
 
-Bands: 0-24 low, 25-49 moderate, 50-74 high, 75-100 critical. A score is a review aid, not a malware verdict; a reference to a domain or API does not prove that the extension acted on it.
+Bands: 0-24 low, 25-49 moderate, 50-74 high, 75-100 critical. A score is a review aid, not a malware verdict; a reference to a domain or API does not prove that the extension acted on it. Recent scans can be restored from local browser storage, and reports can be exported as JSON, CSV or PDF.
 
 Store URLs are optional. The server only accepts official Chrome Web Store, Microsoft Edge Add-ons and Firefox Add-ons hosts, follows an allowlisted redirect path, enforces a 15-second timeout and a 30 MB download cap, and rate-limits requests. Manual upload avoids all server contact.
 
@@ -111,7 +113,7 @@ When adding a message key, add it to `en.ts`, then to every locale file. `getMes
 
 ## Testing
 
-Unit tests cover CRX parsing, ZIP safety, manifest validation, permission and host analysis, JavaScript rules, domain extraction, scoring, content registry invariants, report help links, locale message parity, crawler-safe locale routing, sitemap coverage, hreflang reciprocity, and cited primary sources. Playwright tests cover locale redirects, all 12 supported languages, RTL, navigation, the global 404, SEO metadata, crawler locale handling, robots/sitemap/llms, analyzer uploads, JSON and PDF export, report-to-guide links and error states.
+Unit tests cover CRX parsing, ZIP safety, manifest validation, permission and host analysis, JavaScript rules, domain extraction, scoring, privacy grades and actions, content registry invariants, report help links, locale message parity, crawler-safe locale routing, sitemap coverage, hreflang reciprocity, and cited primary sources. Playwright tests cover locale redirects, all 12 supported languages, RTL, navigation, the global 404, SEO metadata, crawler locale handling, robots/sitemap/llms, analyzer uploads, JSON and PDF export, report-to-guide links and error states.
 
 ## Deployment
 
