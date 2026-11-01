@@ -48,6 +48,8 @@ npm run start
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | `https://extensionprivacychecker.example` | Canonical origin for metadata, hreflang and sitemap |
+| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | empty | Optional Google Search Console verification token |
+| `NEXT_PUBLIC_BING_SITE_VERIFICATION` | empty | Optional Bing Webmaster Tools verification token |
 | `ALLOW_AI_CRAWLERS` | `true` | Allow search and AI crawlers in `robots.txt`; set to `false` to block the named AI agents |
 | `ALLOWED_CRAWLERS` | empty | Optional comma-separated additional user agents for `robots.txt` |
 
@@ -58,15 +60,17 @@ Set `NEXT_PUBLIC_SITE_URL` to the real deployment origin before publishing; it i
 - `/[locale]` — home page with the embedded analyzer
 - `/[locale]/analyzer` — full analyzer page
 - `/[locale]/compare` — side-by-side version comparison for two packages
+- `/[locale]/link-to-us` — badge embeds, link snippets and citation formats
+- `/badges/*.svg` — static badges for documentation and project pages
 - `/[locale]/topics` and `/[locale]/topics/[slug]` — 11 topic hubs
-- `/[locale]/learn` and `/[locale]/learn/[slug]` — 32 keyword articles
+- `/[locale]/learn` and `/[locale]/learn/[slug]` — 39 keyword articles
 - `/[locale]/guides` — guides, comparisons and reference pages
 - `/[locale]/{methodology,about,contact,privacy,terms,disclaimer}` — legal and trust pages
 - `/api/store` — server-side retrieval of public packages from official store endpoints
 - `/og` — generated Open Graph/Twitter image
 - `/sitemap.xml`, `/robots.txt`, `/llms.txt` — crawl and AEO assets
 
-Content routes are generated for all 12 locales (667 static pages). English-only articles on non-English paths render with an English fallback notice, canonicalize to `/en`, and are `noindex`.
+Content routes are generated for all 12 locales (763 static pages). English-only articles on non-English paths render with an English fallback notice, canonicalize to `/en`, and are `noindex`.
 
 ## Project structure
 

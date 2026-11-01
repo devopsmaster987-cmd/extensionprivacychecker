@@ -48,6 +48,11 @@ export function buildMetadata(input: {
   return {
     title: { absolute: input.title },
     description: input.description,
+    authors:
+      input.type === "article"
+        ? [{ name: SITE.author.name, url: SITE.author.url }]
+        : undefined,
+    creator: input.type === "article" ? SITE.author.name : undefined,
     alternates: {
       canonical,
       languages,
@@ -94,6 +99,16 @@ export function organizationJsonLd() {
     description:
       "An independent, free static-analysis tool for inspecting browser extension permissions, code indicators and external domains.",
     email: SITE.email,
+    logo: `${SITE.url}/icon.svg`,
+    founder: personNode(),
+    sameAs: [SITE.repository, ...SITE.author.sameAs],
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      email: SITE.email,
+      url: `${SITE.url}/en/contact`,
+      availableLanguage: ["English"],
+    },
   };
 }
 
@@ -105,6 +120,42 @@ export function websiteJsonLd(locale: Locale) {
     url: localizedUrl(locale),
     inLanguage: localeInfo[locale].bcp47,
     publisher: { "@type": "Organization", name: SITE.name, url: SITE.url },
+  };
+}
+
+function personNode() {
+  return {
+    "@type": "Person",
+    name: SITE.author.name,
+    url: SITE.author.url,
+    email: SITE.author.email,
+    sameAs: SITE.author.sameAs,
+    knowsAbout: [
+      "Browser extension security",
+      "Extension permissions",
+      "Manifest V2 and V3",
+      "Static code analysis",
+      "Privacy engineering",
+    ],
+  };
+}
+
+export function personJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    ...personNode(),
+  };
+}
+
+export function aboutPageJsonLd(locale: Locale) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    name: `About ${SITE.name}`,
+    url: localizedUrl(locale, "/about"),
+    inLanguage: localeInfo[locale].bcp47,
+    mainEntity: personNode(),
+    isPartOf: { "@type": "WebSite", name: SITE.name, url: SITE.url },
   };
 }
 
@@ -184,7 +235,8 @@ export function articleJsonLd(page: ContentPage, locale: Locale) {
       "@type": "WebPage",
       "@id": localizedUrl("en", routeFor(page)),
     },
-    author: { "@type": "Organization", name: SITE.name, url: SITE.url },
+    author: personNode(),
+    reviewedBy: personNode(),
     publisher: { "@type": "Organization", name: SITE.name, url: SITE.url },
     isPartOf: {
       "@type": "WebSite",

@@ -39,6 +39,12 @@ export async function generateMetadata({
     applicationName: SITE.name,
     category: "technology",
     formatDetection: { telephone: false, email: false, address: false },
+    verification: {
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+      other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+        ? { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
+        : undefined,
+    },
     openGraph: {
       type: "website",
       siteName: SITE.name,

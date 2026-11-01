@@ -5,6 +5,7 @@ import { getClusterPages, getHubFor, getRelatedPages, routeFor } from "@/content
 import { getSources } from "@/content/sources";
 import { formatDate, localizedPath, type Locale } from "@/lib/i18n/config";
 import { getMessages } from "@/lib/i18n";
+import { SITE } from "@/lib/site";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumbs } from "./breadcrumbs";
 import { FaqList } from "./faq";
@@ -59,6 +60,17 @@ export function ContentPageView({
           <Heading className="mt-4 text-balance text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
             {page.h1}
           </Heading>
+
+          <p className="mt-3 text-sm text-slate-500">
+            {messages["common.by"]}{" "}
+            <Link
+              href={localizedPath(locale, "/about")}
+              rel="author"
+              className="font-medium text-teal-800 hover:underline"
+            >
+              {SITE.author.name}
+            </Link>
+          </p>
 
           <div className="mt-5 rounded-2xl border border-teal-200 bg-teal-50/70 p-5">
             <p className="text-xs font-bold uppercase tracking-wider text-teal-800">

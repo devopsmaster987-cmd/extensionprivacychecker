@@ -39,6 +39,17 @@ describe("locale proxy", () => {
     expect(response.headers.get("set-cookie")).toContain("epc_locale=es");
   });
 
+  it("marks non-English English-only content as noindex", () => {
+    const content = proxy(request("/es/learn", { "user-agent": "Googlebot/2.1" }));
+    expect(content.headers.get("x-robots-tag")).toBe("noindex, follow");
+
+    const translated = proxy(request("/es/analyzer", { "user-agent": "Googlebot/2.1" }));
+    expect(translated.headers.get("x-robots-tag")).toBeNull();
+
+    const english = proxy(request("/en/learn", { "user-agent": "Googlebot/2.1" }));
+    expect(english.headers.get("x-robots-tag")).toBeNull();
+  });
+
   it("leaves prefixed routes and static files alone", () => {
     const prefixed = proxy(request("/ar/analyzer", { "user-agent": "Googlebot/2.1" }));
     expect(prefixed.headers.get("location")).toBeNull();

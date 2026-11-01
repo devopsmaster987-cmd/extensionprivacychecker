@@ -40,6 +40,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
             <FooterLink href={localizedPath(locale, "/topics")}>{messages["common.viewAllTopics"]}</FooterLink>
             <FooterLink href={localizedPath(locale, "/learn")}>{messages["nav.learn"]}</FooterLink>
             <FooterLink href={localizedPath(locale, "/guides")}>{messages["common.viewAllGuides"]}</FooterLink>
+            <FooterLink href={localizedPath(locale, "/link-to-us")}>{messages["footer.linkToUs"]}</FooterLink>
             {topKeywords.slice(0, 5).map((page) => (
               <FooterLink key={page.slug} href={localizedPath(locale, contentRoutes.keyword(page.slug))}>
                 {page.primaryKeyword}

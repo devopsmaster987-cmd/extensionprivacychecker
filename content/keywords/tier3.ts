@@ -651,7 +651,7 @@ export const tier3: ContentPage[] = [
     primaryKeyword: "compare chrome extension versions",
     intent: "guide",
     title: "How to Compare Chrome Extension Versions",
-    metaTitle: "Compare Chrome Extension Versions - Permissions and Risk Diff",
+    metaTitle: "Compare Chrome Extension Versions - Permission Diff",
     description:
       "Compare two Chrome extension versions to see permission, host pattern, domain and code finding changes. Learn which update changes deserve a closer review.",
     h1: "How to compare Chrome extension versions",

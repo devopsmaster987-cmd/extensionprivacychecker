@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { defaultLocale, detectLocale, isLocale } from "@/lib/i18n/config";
+import { defaultLocale, detectLocale, isLocale, isPathTranslated } from "@/lib/i18n/config";
 
 const PASSTHROUGH = [
   "/api",
@@ -35,7 +35,12 @@ export function proxy(request: NextRequest) {
 
   const firstSegment = pathname.split("/")[1];
   if (isLocale(firstSegment)) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    const pathWithoutLocale = pathname.slice(firstSegment.length + 1) || "/";
+    if (firstSegment !== defaultLocale && !isPathTranslated(pathWithoutLocale)) {
+      response.headers.set("X-Robots-Tag", "noindex, follow");
+    }
+    return response;
   }
 
   const cookieLocale = request.cookies.get("epc_locale")?.value;

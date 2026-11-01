@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="64" viewBox="0 0 300 64" role="img" aria-label="Extension Privacy Checker">
+  <rect width="300" height="64" rx="12" fill="#0f172a"/>
+  <path d="M32 14l14 5v11c0 9-6 15-14 19-8-4-14-10-14-19V19l14-5z" fill="#2dd4bf"/>
+  <path d="M26 30l5 5 9-10" fill="none" stroke="#0f172a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="62" y="27" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">Extension Privacy Checker</text>
+  <text x="62" y="45" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="11">Static analysis. No code execution.</text>
+</svg>

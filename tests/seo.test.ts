@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { languageAlternates, localizedUrl } from "@/lib/seo";
+import { languageAlternates, localizedUrl, organizationJsonLd, personJsonLd } from "@/lib/seo";
 import { localeInfo, locales } from "@/lib/i18n/config";
 import { allContentPaths, routeFor, allPages } from "@/content/registry";
 import { SITE } from "@/lib/site";
@@ -39,6 +39,21 @@ describe("SEO alternates", () => {
   });
 });
 
+describe("entity signals", () => {
+  it("connects the organization and author with verifiable identities", () => {
+    const organization = organizationJsonLd();
+    expect(organization.email).toBe(SITE.email);
+    expect(organization.logo).toBe(`${SITE.url}/icon.svg`);
+    expect(organization.founder.name).toBe(SITE.author.name);
+    expect(organization.sameAs).toContain(SITE.repository);
+
+    const person = personJsonLd();
+    expect(person.name).toBe(SITE.author.name);
+    expect(person.email).toBe(SITE.email);
+    expect(person.sameAs).toContain(SITE.author.sameAs[0]);
+  });
+});
+
 describe("sitemap", () => {
   const entries = sitemap();
   const urls = entries.map((entry) => entry.url);
@@ -48,7 +63,7 @@ describe("sitemap", () => {
   });
 
   it("contains every indexable page with absolute URLs", () => {
-    expect(urls).toHaveLength(77);
+    expect(urls).toHaveLength(85);
     for (const url of urls) expect(url.startsWith(SITE.url)).toBe(true);
 
     for (const locale of locales) {
@@ -60,6 +75,7 @@ describe("sitemap", () => {
     for (const path of [
       ...allContentPaths(),
       "/compare",
+      "/link-to-us",
       "/methodology",
       "/about",
       "/contact",

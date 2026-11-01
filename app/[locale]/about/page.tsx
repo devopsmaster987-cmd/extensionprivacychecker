@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, localizedPath } from "@/lib/i18n/config";
 import { getMessages } from "@/lib/i18n";
-import { buildMetadata } from "@/lib/seo";
+import { aboutPageJsonLd, buildMetadata, personJsonLd } from "@/lib/seo";
+import { SITE } from "@/lib/site";
+import { JsonLd } from "@/components/site/json-ld";
 import { LegalShell } from "@/components/site/legal-shell";
 
 export async function generateMetadata({
@@ -28,13 +30,35 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
   if (!isLocale(locale)) notFound();
 
   return (
-    <LegalShell
+    <>
+      <JsonLd data={[aboutPageJsonLd(locale), personJsonLd()]} />
+      <LegalShell
       locale={locale}
       path="/about"
       eyebrow="About"
       title="About Extension Privacy Checker"
       intro="A free, independent tool for understanding what a browser extension can access before it is installed."
     >
+      <h2 id="author">Who maintains this site</h2>
+      <p>
+        <strong>{SITE.author.name}</strong> maintains Extension Privacy Checker and reviews the
+        methodology, detection rules and long-form guides. The project is independent and has no
+        sponsored rankings, paid certifications or affiliate placements.
+      </p>
+      <p>
+        Contact: <a href={`mailto:${SITE.author.email}`}>{SITE.author.email}</a>. GitHub:{" "}
+        <a href={SITE.author.sameAs[0]} target="_blank" rel="noopener noreferrer">
+          devopsmaster987-cmd
+        </a>.
+      </p>
+
+      <h2>Editorial standards</h2>
+      <p>
+        Pages show a last reviewed date. Corrections are accepted by email and the review date is
+        updated when a factual change is published. Generated analyzer reports are static
+        indicators, not official audits or certifications.
+      </p>
+
       <h2>Why this exists</h2>
       <p>
         Extension permission prompts are short and often technical. A prompt may say an add-on can
@@ -89,6 +113,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         browse <Link href={localizedPath(locale, "/topics")}>topics</Link> and{" "}
         <Link href={localizedPath(locale, "/guides")}>guides</Link> for background.
       </p>
-    </LegalShell>
+      </LegalShell>
+    </>
   );
 }

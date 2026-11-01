@@ -226,7 +226,7 @@ export const tier2: ContentPage[] = [
     primaryKeyword: "browser plugin source analyzer",
     intent: "analyzer",
     title: "Browser Plugin Source Analyzer: Static Code Review",
-    metaTitle: "Browser Plugin Source Analyzer - Static Review Without Running",
+    metaTitle: "Browser Plugin Source Analyzer - Static Code Review",
     description:
       "Analyze browser extension source code without running it. Find dynamic code, remote scripts, obfuscation, DOM injection, storage and messaging patterns.",
     h1: "Browser plugin source analyzer",

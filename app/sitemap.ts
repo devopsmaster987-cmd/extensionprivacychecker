@@ -29,6 +29,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const englishOnlyPages: { path: string; priority: number; lastModified: Date }[] = [
     { path: "/compare", priority: 0.8, lastModified },
+    { path: "/link-to-us", priority: 0.5, lastModified },
     { path: "/topics", priority: 0.8, lastModified },
     { path: "/learn", priority: 0.8, lastModified },
     { path: "/guides", priority: 0.7, lastModified },

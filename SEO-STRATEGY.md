@@ -26,7 +26,7 @@ Own the "can I trust this browser extension" decision moment with a free, privat
 - Locale prefix for every page: `/en`, `/es`, `/fr`, `/de`, `/it`, `/pt`, `/nl`, `/pl`, `/tr`, `/ar`, `/ur`, `/hi`.
 - Home, analyzer and compare are translated shells; compare content is English-only and canonicalizes to `/en`.
 - Topic hubs: `/topics/[slug]` (11 hubs).
-- Keyword articles: `/learn/[slug]` (32 articles).
+- Keyword articles: `/learn/[slug]` (39 articles).
 - Version comparison: `/compare` compares two packages and links to the version-comparison guide.
 - Guides and comparisons: `/guides` lists guide, comparison and reference intents.
 - English-only content on non-English paths canonicalizes to `/en` and is `noindex`.
@@ -52,6 +52,13 @@ Each cluster has one hub and supporting keyword pages. Hubs link down to cluster
 - Tables for permission and risk comparisons; lists for steps; no thin pages.
 - Every article includes an analyzer entry point and a link to the methodology or disclaimer.
 
+## Author and trust signals
+
+- Long-form pages show a named author and a last-reviewed date.
+- The about page identifies the maintainer, contact email, GitHub profile and editorial standards.
+- `Article` schema uses a `Person` author; `Organization` schema includes a logo, founder, repository and contact point.
+- Do not claim independent expert review, certification or official audit status without evidence.
+
 ## Structured data
 
 - `Organization`, `WebSite` and `WebApplication` on the home page.
@@ -69,6 +76,14 @@ Each cluster has one hub and supporting keyword pages. Hubs link down to cluster
 - `lang` and `dir` are set on `<html>`; Arabic and Urdu render RTL.
 - Locale cookie preserves choice but never overrides an explicit locale URL.
 - Translated pages must not contain untranslated boilerplate that changes meaning; long-form English fallback is disclosed in the UI.
+
+## Link earning
+
+- Provide ready-made badges, HTML/Markdown snippets and citation formats at `/link-to-us`.
+- Prioritize relevant editorial links: extension-development docs, privacy directories, security guides, university material and journalist citations.
+- Do not buy links, join link schemes or require reciprocal links.
+- Track source, target URL, anchor text, status and referral traffic; review monthly.
+- See `BACKLINK-STRATEGY.md` for targets, outreach templates and a 90-day plan.
 
 ## AEO (answer-engine optimization)
 

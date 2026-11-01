@@ -48,6 +48,8 @@ export const hubs: ContentPage[] = [
         links: [
           { label: "does this extension track me", slug: "does-this-extension-track-me" },
           { label: "best extension permission checker tools", slug: "best-extension-permission-checker-tools" },
+          { label: "extension risk score explained", slug: "extension-risk-score-explained" },
+          { label: "Chrome extension safety check", slug: "chrome-extension-safety-check" },
         ],
       },
       {
@@ -58,6 +60,10 @@ export const hubs: ContentPage[] = [
         ],
         callout:
           "A referenced domain or API is a capability, not evidence of data collection. Treat every automated finding as a question to investigate.",
+        links: [
+          { label: "browser extension malware scanner", slug: "browser-extension-malware-scanner" },
+          { label: "Chrome extension safety check", slug: "chrome-extension-safety-check" },
+        ],
       },
     ],
     faqs: [
@@ -185,7 +191,7 @@ export const hubs: ContentPage[] = [
     title: "Extension Manifest Viewer: Read manifest.json in Plain Language",
     metaTitle: "Extension Manifest Viewer - Manifest V2 and V3 Explained",
     description:
-      "View an extension manifest online. See manifest version, permissions, host permissions, content scripts, background scripts, CSP and update URL in plain language.",
+      "View an extension manifest online. See manifest version, permissions, host permissions, content scripts, background scripts, CSP and update URL.",
     h1: "Extension manifest viewer",
     answer:
       "An extension manifest viewer parses manifest.json and explains its fields without requiring the extension to be installed. It shows Manifest V2 or V3, required and optional permissions, host permissions, content scripts, background behavior, externally_connectable, web-accessible resources and content security policy.",
@@ -390,6 +396,7 @@ export const hubs: ContentPage[] = [
         links: [
           { label: "manifest V3 permissions explained", slug: "manifest-v3-permissions-list-explained" },
           { label: "what all_urls means", slug: "what-does-all-urls-permission-mean" },
+          { label: "Firefox add-on privacy checker", slug: "firefox-addon-privacy-checker" },
         ],
       },
       {
@@ -441,7 +448,7 @@ export const hubs: ContentPage[] = [
     primaryKeyword: "Edge extension inspector",
     intent: "analyzer",
     title: "Edge Extension Inspector: Audit Microsoft Edge Add-ons",
-    metaTitle: "Edge Extension Inspector - Analyze Add-on Permissions and Code",
+    metaTitle: "Edge Extension Inspector - Analyze Add-on Permissions",
     description:
       "Inspect Microsoft Edge extensions online. Review permissions, host access, manifest fields, source indicators and external domains before installing an add-on.",
     h1: "Edge extension inspector",
@@ -475,6 +482,7 @@ export const hubs: ContentPage[] = [
         links: [
           { label: "JavaScript behavior analyzer", slug: "extension-javascript-behavior-analyzer" },
           { label: "content script matches explained", slug: "content-script-matches-patterns-explained" },
+          { label: "Edge extension permission checker", slug: "edge-extension-permission-checker" },
         ],
       },
       {
@@ -616,7 +624,7 @@ export const hubs: ContentPage[] = [
     primaryKeyword: "extension content script inspector",
     intent: "analyzer",
     title: "Extension Content Script Inspector: See Which Pages Can Be Changed",
-    metaTitle: "Extension Content Script Inspector - Match Patterns Explained",
+    metaTitle: "Extension Content Script Inspector - Match Patterns",
     description:
       "Inspect extension content scripts and match patterns. Understand which websites an extension can read or modify and how run_at and all_frames affect behavior.",
     h1: "Extension content script inspector",
@@ -727,6 +735,7 @@ export const hubs: ContentPage[] = [
         links: [
           { label: "extension CSP in Manifest V3", slug: "extension-csp-manifest-v3-explained" },
           { label: "external domain finder", slug: "extension-external-domain-finder" },
+          { label: "check Chrome extension source code", slug: "check-chrome-extension-source-code" },
         ],
       },
       {
@@ -778,7 +787,7 @@ export const hubs: ContentPage[] = [
     primaryKeyword: "browser extension tracking analysis",
     intent: "analyzer",
     title: "Browser Extension Tracking Analysis: Find Data-Collection Signals",
-    metaTitle: "Browser Extension Tracking Analysis - Data Collection Signals",
+    metaTitle: "Browser Extension Tracking Analysis - Data Signals",
     description:
       "Analyze browser extensions for tracking-related signals: analytics and advertising domains, storage APIs, cookie access, identifiers and messaging patterns.",
     h1: "Browser extension tracking analysis",
@@ -812,6 +821,7 @@ export const hubs: ContentPage[] = [
         links: [
           { label: "browser add-on data access checker", slug: "browser-add-on-data-access-checker" },
           { label: "cookies permission explained", slug: "extension-asking-for-cookies-permission" },
+          { label: "extension data collection checker", slug: "extension-data-collection-checker" },
         ],
       },
       {

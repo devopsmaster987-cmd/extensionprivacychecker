@@ -2,9 +2,10 @@ import { hubs } from "./hubs";
 import { tier1 } from "./keywords/tier1";
 import { tier2 } from "./keywords/tier2";
 import { tier3 } from "./keywords/tier3";
+import { tier4 } from "./keywords/tier4";
 import type { ContentPage } from "./types";
 
-export const allPages: ContentPage[] = [...hubs, ...tier1, ...tier2, ...tier3];
+export const allPages: ContentPage[] = [...hubs, ...tier1, ...tier2, ...tier3, ...tier4];
 
 export const keywordPages = allPages.filter((page) => page.kind === "keyword");
 export const hubPages = allPages.filter((page) => page.kind === "hub");
