@@ -26,7 +26,7 @@ Own the "can I trust this browser extension" decision moment with a free, privat
 - Locale prefix for every page: `/en`, `/es`, `/fr`, `/de`, `/it`, `/pt`, `/nl`, `/pl`, `/tr`, `/ar`, `/ur`, `/hi`.
 - Home, analyzer and compare are translated shells; compare content is English-only and canonicalizes to `/en`.
 - Topic hubs: `/topics/[slug]` (11 hubs).
-- Keyword articles: `/learn/[slug]` (39 articles).
+- Keyword articles: `/learn/[slug]` (45 articles).
 - Version comparison: `/compare` compares two packages and links to the version-comparison guide.
 - Guides and comparisons: `/guides` lists guide, comparison and reference intents.
 - English-only content on non-English paths canonicalizes to `/en` and is `noindex`.

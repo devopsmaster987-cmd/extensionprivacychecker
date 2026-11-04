@@ -15,10 +15,10 @@ describe("content registry", () => {
     expect(validateRegistry()).toEqual([]);
   });
 
-  it("contains all 11 hubs and 39 keyword pages", () => {
+  it("contains all 11 hubs and 45 keyword pages", () => {
     expect(hubPages).toHaveLength(11);
-    expect(keywordPages).toHaveLength(39);
-    expect(allPages).toHaveLength(50);
+    expect(keywordPages).toHaveLength(45);
+    expect(allPages).toHaveLength(56);
   });
 
   it("assigns every keyword page to exactly one hub", () => {
