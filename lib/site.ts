@@ -1,9 +1,9 @@
 const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-const siteUrl = (configuredSiteUrl ?? "https://extensionprivacychecker.example").replace(/\/$/, "");
+const siteUrl = (configuredSiteUrl ?? "https://extensionprivacychecker.top").replace(/\/$/, "");
 
 if (process.env.NODE_ENV === "production" && siteUrl.includes(".example")) {
   console.warn(
-    "[seo] NEXT_PUBLIC_SITE_URL is not set to the production domain. Canonical URLs, hreflang, schema and the sitemap will point to a placeholder domain.",
+    "[seo] NEXT_PUBLIC_SITE_URL still points to a placeholder domain. Canonical URLs, hreflang, schema and the sitemap will be wrong.",
   );
 }
 

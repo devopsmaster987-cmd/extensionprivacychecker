@@ -78,7 +78,7 @@ Hi [name],
 
 I maintain Extension Privacy Checker, a free static analyzer for CRX, XPI, ZIP and manifest.json packages. It runs locally, never executes extension code, and explains permissions, host access, domains and code findings.
 
-I noticed [page title] lists tools for [specific use case]. If it fits your criteria, the analyzer is here: https://extensionprivacychecker.example/en/analyzer
+I noticed [page title] lists tools for [specific use case]. If it fits your criteria, the analyzer is here: https://extensionprivacychecker.top/en/analyzer
 
 A short factual description: “Free browser extension privacy checker that inspects packages locally and reports permissions, website access, external domains and static code indicators.”
 
@@ -90,7 +90,7 @@ Subject: Optional audit link for [project]
 
 Hi [name],
 
-Thanks for maintaining [project]. If your contributor docs ever need a way to inspect a packaged extension before release, Extension Privacy Checker is free and runs entirely in the browser: https://extensionprivacychecker.example/en/analyzer
+Thanks for maintaining [project]. If your contributor docs ever need a way to inspect a packaged extension before release, Extension Privacy Checker is free and runs entirely in the browser: https://extensionprivacychecker.top/en/analyzer
 
 It supports CRX, XPI, ZIP and standalone manifests and does not execute uploaded code. Feel free to ignore this if it is not useful for your readers.
 
@@ -102,7 +102,7 @@ Hi [name],
 
 I saw your coverage of [specific article]. I maintain Extension Privacy Checker, which scores browser-extension packages on permissions, host access, data-collection indicators, remote code and obfuscation.
 
-If useful, the methodology and limits are documented here: https://extensionprivacychecker.example/en/methodology
+If useful, the methodology and limits are documented here: https://extensionprivacychecker.top/en/methodology
 
 I can provide a short comment on why static extension analysis cannot prove malicious behavior, or walk through a specific permission pattern. No link request attached.
 

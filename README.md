@@ -47,7 +47,7 @@ npm run start
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | `https://extensionprivacychecker.example` | Canonical origin for metadata, hreflang and sitemap |
+| `NEXT_PUBLIC_SITE_URL` | `https://extensionprivacychecker.top` | Canonical origin for metadata, hreflang and sitemap |
 | `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | empty | Optional Google Search Console verification token |
 | `NEXT_PUBLIC_BING_SITE_VERIFICATION` | empty | Optional Bing Webmaster Tools verification token |
 | `ALLOW_AI_CRAWLERS` | `true` | Allow search and AI crawlers in `robots.txt`; set to `false` to block the named AI agents |
